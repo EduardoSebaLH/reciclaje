@@ -1,0 +1,17 @@
+{
+  "name": "reciclaje-v2",
+  "version": "1.0.0",
+  "description": "App de gestión de reciclaje con Electron",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "devDependencies": {
+    "electron": "^29.3.1",
+    "electron-rebuild": "^3.2.9"
+  },
+  "dependencies": {
+    "better-sqlite3": "^12.2.0",
+    "exceljs": "^4.4.0"
+  }
+}
