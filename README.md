@@ -56,6 +56,8 @@ Añade aquí imágenes de tu app en funcionamiento (por ejemplo: vista principal
 📍 San Bernardo, Chile
 💼 Técnico en Informática & Estudiante de Ingeniería en Informática
 
-Si este proyecto te pareció interesante, ¡no dudes en dejar una estrella ⭐ o forkearlo!
+Si este proyecto te pareció interesante, no dudes en contactarme.
 
 ¿Comentarios o sugerencias? ¡Estoy abierto a mejorar!
+
+✉️edusebalh@gmail.com
