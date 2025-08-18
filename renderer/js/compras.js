@@ -205,16 +205,17 @@ document.getElementById("form-compra").addEventListener("submit", async (e) => {
     rut: document.getElementById("rutCliente").value.trim(),
     direccion: document.getElementById("direccionCliente").value.trim(),
     fecha: document.getElementById("fechaCompra").value,
+    fechaIngreso: new Date().toISOString(), 
     materiales: materialesData,
     total: Math.round(total),
     facturada: document.getElementById("esFacturada").checked
   };
 
-  console.log("➡️ Enviando datos:", datosCompra);
+  console.log("Enviando datos:", datosCompra);
 
   const respuesta = await window.api.guardarCompra(datosCompra);
 
-  console.log("💾 Respuesta al guardar:", respuesta);
+  console.log("Respuesta al guardar:", respuesta);
 
   if (respuesta.ok) {
     alert("✅ Compra guardada correctamente");
@@ -261,6 +262,7 @@ filasTabla.forEach(fila => {
   materiales.push({ nombre, peso, precio });
 });
 
+
 // 🟢 2. Calcular el total
 const totalCalculado = materiales.reduce((acc, m) => {
   const precio = Number(m.precio);
@@ -270,11 +272,11 @@ const totalCalculado = materiales.reduce((acc, m) => {
 
 // 🟢 3. Construir objeto de datos
 const datosBoleta = {
-  nombre: document.getElementById("nombre")?.value || "—",
-  rut: document.getElementById("rut")?.value || "—",
-  direccion: document.getElementById("direccion")?.value || "—",
+  nombre: document.getElementById("nombreCliente")?.value || "—",
+  rut: document.getElementById("rutCliente")?.value || "—",
+  direccion: document.getElementById("direccionCliente")?.value || "—",
   fecha: new Date().toLocaleDateString("es-CL"),
-  facturada: document.getElementById("facturada")?.checked || false,
+  facturada: document.getElementById("esfacturada")?.checked || false,
   materiales,
   total: totalCalculado
 };
@@ -380,6 +382,7 @@ boletaVentana.document.write(`
               <th>♻️ Material</th>
               <th>⚖️ Peso (kg)</th>
               <th>💰 Precio</th>
+              <th>🧮 Subtotal</th>
             </tr>
           </thead>
           <tbody>
@@ -388,6 +391,7 @@ boletaVentana.document.write(`
                 <td>${m.nombre}</td>
                 <td>${m.peso}</td>
                 <td>$${Number(m.precio).toLocaleString("es-CL")}</td>
+                <td>$${(Number(m.peso) * Number(m.precio)).toLocaleString("es-CL")}</td> <!-- Subtotal -->
               </tr>`).join("")}
           </tbody>
         </table>
@@ -405,7 +409,7 @@ boletaVentana.document.write(`
 `);
 boletaVentana.document.close();
 
-  // 👉 Esperamos a que todo cargue antes de imprimir
+  //  Esperamos a que todo cargue antes de imprimir
   boletaVentana.onload = () => {
     boletaVentana.focus();
     boletaVentana.print();

@@ -90,7 +90,7 @@ document.getElementById("btn-limpiar-venta").addEventListener("click", () => {
   }
 });
 
-// 💾 Guardar venta
+// Guardar venta
 document.getElementById("form-venta").addEventListener("submit", async (e) => {
   e.preventDefault();
 
@@ -142,7 +142,7 @@ document.getElementById("form-venta").addEventListener("submit", async (e) => {
   }
 });
 
-// 🖨️ Imprimir boleta
+// Imprimir boleta venta
 document.getElementById("btn-imprimir-venta").addEventListener("click", () => {
   const datosVenta = {
     folio: document.getElementById("folioVenta").value.trim(),
@@ -164,12 +164,12 @@ document.getElementById("btn-imprimir-venta").addEventListener("click", () => {
   let total = 0;
 
   filas.forEach(fila => {
-    const material = fila.cells[0].querySelector("select")?.selectedOptions[0]?.text || "—";
+    const nombre = fila.cells[0].querySelector("select")?.selectedOptions[0]?.text || "—";
     const peso = parseFloat(fila.cells[1].querySelector("input")?.value) || 0;
     const precio = parseFloat(fila.cells[2].querySelector("input")?.value) || 0;
     const subtotal = Math.round(peso * precio) || 0;
 
-    datosVenta.materiales.push({ material, peso, precio, subtotal });
+    datosVenta.materiales.push({ nombre, peso, precio, subtotal });
     total += subtotal;
   });
 
@@ -254,45 +254,59 @@ document.getElementById("btn-imprimir-venta").addEventListener("click", () => {
 });
 
 document.getElementById("btn-historial-venta").addEventListener("click", async () => {
-  const seccion = document.getElementById("historial-ventas");
-  const tabla = document.getElementById("tabla-historial-ventas");
+  try {
+    const respuesta = await window.api.obtenerVentas();
+    console.log("Respuesta desde main:", respuesta);
 
-  const respuesta = await window.api.obtenerVentas();
-  tabla.innerHTML = "";
-  seccion.style.display = "block";
+    const tbody = document.getElementById("tabla-historial-ventas");
+    const seccion = document.getElementById("historial-ventas");
+    tbody.innerHTML = "";
+    seccion.style.display = "block";
 
-  if (!respuesta.ok) {
-    tabla.innerHTML = "<tr><td colspan='6'>❌ Error al obtener ventas</td></tr>";
-    return;
-  }
+    if (!respuesta.ok) {
+      tbody.innerHTML = "<tr><td colspan='6'>❌ Error al obtener ventas</td></tr>";
+      return;
+    }
 
-  if (respuesta.ventas.length === 0) {
-    tabla.innerHTML = "<tr><td colspan='6'>No hay ventas registradas</td></tr>";
-    return;
-  }
+    if (respuesta.ventas.length === 0) {
+      tbody.innerHTML = "<tr><td colspan='6'>No hay ventas registradas</td></tr>";
+      return;
+    }
 
-  respuesta.ventas.forEach(v => {
-    const fila = document.createElement("tr");
-    fila.innerHTML = `
-      <td>${v.fecha}</td>
-      <td>${v.nombre}</td>
-      <td>${v.rut}</td>
-      <td>$${v.total.toLocaleString("es-CL")}</td>
-      <td>${v.facturada ? "✅" : "—"}</td>
-      <td><button class="btn-eliminar-venta" data-id="${v.id}">❌</button></td>
-    `;
-    tabla.appendChild(fila);
-  });
-
-  document.querySelectorAll(".btn-eliminar-venta").forEach(btn => {
-    btn.addEventListener("click", async () => {
-      if (!confirm("¿Eliminar esta venta permanentemente?")) return;
-      const id = parseInt(btn.dataset.id);
-      const r = await window.api.eliminarVenta(id);
-      if (r.ok) btn.closest("tr").remove();
-      else alert("❌ Error al eliminar: " + r.error);
+    respuesta.ventas.forEach(venta => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${venta.fecha}</td>
+        <td>${venta.nombre}</td>
+        <td>${venta.rut}</td>
+        <td>$${(typeof venta.total === "number" ? venta.total : Number(venta.total || 0)).toLocaleString("es-CL")}</td>
+        <td>${venta.facturada ? "✅" : "—"}</td>
+        <td><button class="btn-eliminar-venta" data-id="${venta.id}" style="color:red; cursor:pointer;">❌</button></td>
+      `;
+      tbody.appendChild(tr);
+      seccion.classList.add("fadeIn");
     });
-  });
+
+    // Activar los botones eliminar una vez renderizado el historial
+    setTimeout(() => {
+      document.querySelectorAll(".btn-eliminar-venta").forEach(btn => {
+        btn.addEventListener("click", async () => {
+          const id = parseInt(btn.dataset.id);
+          if (!confirm("¿Eliminar esta venta permanentemente?")) return;
+
+          const resultado = await window.api.eliminarVenta(id);
+          if (resultado.ok) {
+            btn.closest("tr").remove();
+          } else {
+            alert("❌ Error al eliminar: " + resultado.error);
+          }
+        });
+      });
+    }, 0);
+
+  } catch (error) {
+    console.error("Error al mostrar historial:", error.message);
+  }
 });
 
 
@@ -315,4 +329,3 @@ document.getElementById("btn-cerrar-historial-venta").addEventListener("click", 
   const seccion = document.getElementById("historial-ventas");
   seccion.style.display = "none";
 });
-

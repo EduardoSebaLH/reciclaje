@@ -1,4 +1,4 @@
-/* 🌱 Estilo base */
+/* Estilo base */
 body {
   margin: 0;
   font-family: 'Segoe UI', 'Roboto', sans-serif;
@@ -28,7 +28,7 @@ button:hover {
 }
 
 header {
-  background: #212529;
+  background: #363b40;
   color: white;
   display: flex;
   justify-content: space-between;

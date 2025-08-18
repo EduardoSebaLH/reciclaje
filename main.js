@@ -2,11 +2,11 @@ const { app, BrowserWindow, ipcMain } = require("electron");
 const path = require("path");
 const Database = require("better-sqlite3");
 
-// 👉 Inicializar bases de datos con rutas seguras
+// Inicializar bases de datos con rutas seguras
 const dbCompras = new Database(path.join(__dirname, "data/compras.db"));
 const dbVentas = new Database(path.join(__dirname, "data/ventas.db"));
 
-// 🟢 Crear tabla de compras
+// Crear tabla de compras
 dbCompras.prepare(`
   CREATE TABLE IF NOT EXISTS compras (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -14,13 +14,14 @@ dbCompras.prepare(`
     rut TEXT,
     direccion TEXT,
     fecha TEXT,
+    fechaIngreso TEXT,
     facturada INTEGER,
     materiales TEXT,
     total INTEGER
   );
 `).run();
 
-// 🔵 Crear tabla de ventas
+// Crear tabla de ventas
 dbVentas.prepare(`
   CREATE TABLE IF NOT EXISTS ventas (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -35,18 +36,19 @@ dbVentas.prepare(`
   );
 `).run();
 
-// 💾 Manejador para guardar compras
+// Manejador para guardar compras
 ipcMain.handle("guardar-compra", async (event, datos) => {
   try {
     const insert = dbCompras.prepare(`
-      INSERT INTO compras (nombre, rut, direccion, fecha, materiales, total, facturada)
-      VALUES (?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO compras (nombre, rut, direccion, fecha, fechaIngreso, materiales, total, facturada)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     `);
     insert.run(
       datos.nombre,
       datos.rut,
       datos.direccion,
       datos.fecha,
+      datos.fechaIngreso || new Date().toISOString(),
       JSON.stringify(datos.materiales),
       datos.total,
       datos.facturada ? 1 : 0
@@ -61,8 +63,8 @@ ipcMain.handle("guardar-compra", async (event, datos) => {
 ipcMain.handle("guardar-venta", (event, venta) => {
   try {
     const stmt = dbVentas.prepare(`
-      INSERT INTO ventas (nombre, rut, direccion, fecha, folio, facturada, materiales, total)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO ventas (nombre, rut, direccion, fecha, fechaIngreso, folio, facturada, materiales, total)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
 
     const result = stmt.run(
@@ -70,6 +72,7 @@ ipcMain.handle("guardar-venta", (event, venta) => {
       venta.rut,
       venta.direccion,
       venta.fecha,
+      venta.fechaIngreso || new Date().toISOString(),
       venta.folio,
       venta.facturada ? 1 : 0,
       JSON.stringify(venta.materiales),
@@ -83,7 +86,7 @@ ipcMain.handle("guardar-venta", (event, venta) => {
   }
 });
 
-// 🌐 Crear ventana principal
+// Crear ventana principal
 function createWindow() {
   const win = new BrowserWindow({
     width: 1000,
@@ -97,7 +100,7 @@ function createWindow() {
   win.loadFile(path.join(__dirname, "renderer/index.html"));
 }
 
-// 🚀 Iniciar aplicación
+// Iniciar aplicación
 app.whenReady().then(() => {
   createWindow();
 
@@ -106,14 +109,14 @@ app.whenReady().then(() => {
   });
 });
 
-// 🧼 Cerrar completamente en sistemas que no sean Mac
+// Cerrar completamente en sistemas que no sean Mac
 app.on("window-all-closed", () => {
   if (process.platform !== "darwin") app.quit();
 });
 
 ipcMain.handle("obtener-compras", async () => {
   try {
-    const fila = dbCompras.prepare("SELECT * FROM compras ORDER BY fecha DESC").all();
+    const fila = dbCompras.prepare("SELECT * FROM compras ORDER BY fechaIngreso DESC LIMIT 10").all();
     return { ok: true, compras: fila };
   } catch (err) {
     console.error("Error al obtener historial:", err.message);
@@ -124,72 +127,85 @@ ipcMain.handle("obtener-compras", async () => {
 const ExcelJS = require("exceljs");
 const fs = require("fs");
 
-ipcMain.handle("exportar-excel", async () => {
+ipcMain.handle("exportar-compras", async () => {
   try {
     const registros = dbCompras.prepare("SELECT * FROM compras").all();
-
     const workbook = new ExcelJS.Workbook();
-    const hoja = workbook.addWorksheet("Compras");
+    const sheet = workbook.addWorksheet("Compras");
 
-    // 👉 Cabecera base
-    const columnasBase = [
-      { header: "ID", key: "id" },
-      { header: "Nombre", key: "nombre" },
-      { header: "RUT", key: "rut" },
-      { header: "Dirección", key: "direccion" },
-      { header: "Fecha", key: "fecha" },
-      { header: "Total", key: "total" },
-      { header: "Facturada", key: "facturada" }
+    // Determinar el máximo de materiales por compra
+    let maxMateriales = 0;
+    const comprasConMateriales = registros.map(c => {
+      const mats = JSON.parse(c.materiales || "[]");
+      maxMateriales = Math.max(maxMateriales, mats.length);
+      return { ...c, materiales: mats };
+    });
+
+    // Cabecera base
+    const baseHeaders = [
+      "ID", "Fecha", "Fecha/Hora Ingreso", "Cliente", "RUT", "Dirección", "Facturada", "Total"
     ];
 
-    // 🔍 Detectar la cantidad máxima de materiales en una compra
-    let maxMateriales = 0;
-    registros.forEach(c => {
-      const materiales = JSON.parse(c.materiales);
-      if (materiales.length > maxMateriales) {
-        maxMateriales = materiales.length;
-      }
-    });
-
-    // 📌 Generar cabeceras dinámicas para materiales
-    const columnasMateriales = [];
+    // Cabeceras dinámicas para materiales
+    const headerMateriales = [];
     for (let i = 1; i <= maxMateriales; i++) {
-      columnasMateriales.push({ header: `Material ${i}`, key: `mat${i}` });
-      columnasMateriales.push({ header: `Peso ${i} (kg)`, key: `peso${i}` });
-      columnasMateriales.push({ header: `Precio ${i}`, key: `precio${i}` });
+      headerMateriales.push(
+        `Material ${i}`,
+        `Peso ${i}`,
+        `Precio ${i}`,
+        `Subtotal ${i}`
+      );
     }
 
-    // 🧱 Unir todo
-    hoja.columns = [...columnasBase, ...columnasMateriales];
+    sheet.addRow([...baseHeaders, ...headerMateriales]);
 
-    // 🧾 Agregar cada compra como una fila con sus materiales
-    registros.forEach(c => {
-      const materiales = JSON.parse(c.materiales);
-      const row = {
-        id: c.id,
-        nombre: c.nombre,
-        rut: c.rut,
-        direccion: c.direccion,
-        fecha: c.fecha,
-        total: c.total,
-        facturada: c.facturada ? "Sí" : "No"
-      };
+    // Agregar cada compra en una fila
+    comprasConMateriales.forEach(c => {
+      const row = [
+        c.id,
+        c.fecha,
+        c.fechaIngreso
+          ? new Date(c.fechaIngreso).toLocaleString("es-CL", {
+              year: "numeric",
+              month: "2-digit",
+              day: "2-digit",
+              hour: "2-digit",
+              minute: "2-digit",
+              second: "2-digit"
+            })
+          : "",
+        c.nombre,
+        c.rut,
+        c.direccion,
+        c.facturada ? "Sí" : "No",
+        c.total
+      ];
 
-      materiales.forEach((m, i) => {
-        row[`mat${i + 1}`] = m.material;
-        row[`peso${i + 1}`] = m.peso;
-        row[`precio${i + 1}`] = m.precio;
+      c.materiales.forEach(m => {
+        row.push(
+          m.material || "",
+          m.peso || "",
+          m.precio || "",
+          m.subtotal || ""
+        );
       });
 
-      hoja.addRow(row);
+      // Si tiene menos materiales, completa con celdas vacías
+      const celdasFaltantes = (maxMateriales - c.materiales.length) * 4;
+      row.push(...Array(celdasFaltantes).fill(""));
+
+      sheet.addRow(row);
     });
 
-    const ruta = path.join(app.getPath("documents"), "compras_exportadas.xlsx");
-    await workbook.xlsx.writeFile(ruta);
+    const exportDir = path.join(__dirname, "exportaciones");
+    if (!fs.existsSync(exportDir)) fs.mkdirSync(exportDir);
 
-    return { ok: true, path: ruta };
+    const filePath = path.join(exportDir, "compras.xlsx");
+    await workbook.xlsx.writeFile(filePath);
+    return { ok: true, path: filePath };
+
   } catch (err) {
-    console.error("❌ Error al exportar Excel:", err.message);
+    console.error("❌ Error al exportar compras:", err.message);
     return { ok: false, error: err.message };
   }
 });
@@ -206,7 +222,7 @@ ipcMain.handle("eliminar-compra", async (event, id) => {
 
 ipcMain.handle("obtener-ventas", () => {
   try {
-    const ventas = dbVentas.prepare("SELECT * FROM ventas ORDER BY fecha DESC").all();
+    const ventas = dbVentas.prepare("SELECT * FROM ventas ORDER BY fechaIngreso DESC LIMIT 10").all();
     return { ok: true, ventas };
   } catch (error) {
     console.error("❌ Error al obtener historial:", error.message);
@@ -229,8 +245,10 @@ ipcMain.handle("exportar-ventas", async () => {
     });
 
     // Cabecera base
-    const baseHeaders = ["ID", "Folio", "Fecha", "Cliente", "RUT", "Dirección", "Facturada", "Total"];
-    
+    const baseHeaders = [
+      "ID", "Folio", "Fecha", "Fecha/Hora Ingreso", "Cliente", "RUT", "Dirección", "Facturada", "Total"
+    ];
+
     // Cabeceras dinámicas para materiales
     const headerMateriales = [];
     for (let i = 1; i <= maxMateriales; i++) {
@@ -250,6 +268,16 @@ ipcMain.handle("exportar-ventas", async () => {
         v.id,
         v.folio,
         v.fecha,
+        v.fechaIngreso
+          ? new Date(v.fechaIngreso).toLocaleString("es-CL", {
+              year: "numeric",
+              month: "2-digit",
+              day: "2-digit",
+              hour: "2-digit",
+              minute: "2-digit",
+              second: "2-digit"
+            })
+          : "",
         v.nombre,
         v.rut,
         v.direccion,

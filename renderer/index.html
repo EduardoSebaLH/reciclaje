@@ -1,205 +1,262 @@
 <!DOCTYPE html>
 <html lang="es">
-<head>
-  <meta charset="UTF-8" />
-  <title>Gestión de Reciclaje – Compras</title>
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline';" />
-  <link rel="stylesheet" href="css/style.css" />
-</head>
-<body>
-  <header style="background-color: #343a40; color: white; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center;">
-    <h1 style="margin: 0; font-size: 1.4rem;">♻️ Reciclaje Adán Lizana</h1>
-    <nav>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Sistema de gestión contable Reciclaje Adan Lizana</title>
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline';"
+    />
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+  <body>
+    <header>
+      <h1 style="margin: 0; font-size: 1.4rem">♻️ Reciclaje Adán Lizana</h1>
+      <nav>
         <button id="btn-inicio">🏠 Inicio</button>
         <button id="btn-compras">📦 Módulo de Compras</button>
         <button id="btn-ventas">💸 Módulo de Ventas</button>
-    </nav>
-  </header>
+      </nav>
+    </header>
 
-  <main class="container">
-    <section id="vista-inicio" style="display: block; text-align: center; padding: 4rem;">
-        <h2>♻️ Bienvenido al Sistema de Reciclaje Adán Lizana</h2>
+    <main class="container">
+      <section
+        id="vista-inicio"
+        style="display: block; text-align: center; padding: 4rem"
+      >
+        <h2>
+          ♻️ Bienvenido al Sistema de gestión contable Reciclaje Adan Lizana
+        </h2>
         <p>Selecciona un módulo en el menú para comenzar.</p>
-    </section>
+      </section>
 
-    <section id="vista-compras" class="content-section" style="display: none;">
-      <form id="form-compra">
-        <fieldset>
-          <legend>🧍Datos del Cliente</legend>
-          <label>Nombre:
-            <input type="text" id="nombreCliente" required />
-          </label>
-          <label>RUT:
-            <input type="text" id="rutCliente" required />
-          </label>
-          <label>Dirección:
-            <input type="text" id="direccionCliente" />
-          </label>
-          <label>Fecha:
-            <input type="date" id="fechaCompra" required />
-          </label>
-        </fieldset>
-        
-        <div class="extras">
-        <label for="esFacturada" class="checkbox-label">
-            <input type="checkbox" id="esFacturada" />
-            🧾 Esta compra es facturada
-        </label>
-        <p id="factura-info" class="factura-detalle" style="display: none;">
-            💡 Este dato será registrado como una compra facturada en la base de datos.
-        </p>
+      <section id="vista-compras" class="content-section" style="display: none">
+        <form id="form-compra">
+          <fieldset>
+            <legend>🧍Datos de la Compra</legend>
+            <label
+              >Nombre y apellidos:
+              <input type="text" id="nombreCliente" required />
+            </label>
+            <label
+              >RUT:
+              <input type="text" id="rutCliente" required />
+            </label>
+            <label
+              >Dirección:
+              <input type="text" id="direccionCliente" />
+            </label>
+            <label
+              >Fecha:
+              <input type="date" id="fechaCompra" required />
+            </label>
+          </fieldset>
+
+          <div class="extras">
+            <label for="esFacturada" class="checkbox-label">
+              <input type="checkbox" id="esFacturada" />
+              🧾 Esta compra es facturada
+            </label>
+            <p id="factura-info" class="factura-detalle" style="display: none">
+              💡 Este dato será registrado como una compra facturada en la base
+              de datos.
+            </p>
+          </div>
+
+          <br />
+          <fieldset>
+            <legend>📦 Materiales Comprados</legend>
+            <table id="tabla-materiales">
+              <thead>
+                <tr>
+                  <th>Material</th>
+                  <th>Peso (kg)</th>
+                  <th>Precio/kg</th>
+                  <th>Subtotal</th>
+                  <th>Eliminar</th>
+                </tr>
+              </thead>
+              <tbody id="tbody-materiales">
+                <!-- Filas dinámicas -->
+              </tbody>
+            </table><br>
+            <button type="button" id="btn-agregar-material">
+              + Añadir Material
+            </button>
+          </fieldset>
+
+          <div class="extras">
+            <p>Total a pagar: <strong id="totalCompra">$0</strong></p>
+          </div>
+
+          <div class="acciones-compra">
+            <button type="button" id="btn-limpiar">🧹 Limpiar Registro</button>
+            <button type="submit" id="btn-guardar">💾 Guardar Compra</button>
+            <button type="button" id="btn-imprimir">🖨️ Imprimir Boleta</button>
+            <button type="button" id="btn-historial">📜 Ver Historial</button>
+            <button type="button" id="btn-exportar">📥 Exportar a Excel</button>
+          </div>
+        </form>
+      </section>
+
+      <section id="vista-ventas" class="content-section" style="display: none">
+        <form id="form-venta">
+          <fieldset>
+            <legend>🧍 Datos de la Venta</legend>
+            <label
+              >N° Folio:
+              <input type="text" id="folioVenta" required />
+            </label>
+            <label
+              >Nombre y apellidos
+              <input type="text" id="nombreVenta" required />
+            </label>
+            <label
+              >RUT:
+              <input type="text" id="rutVenta" required />
+            </label>
+            <label
+              >Dirección:
+              <input type="text" id="direccionVenta" />
+            </label>
+            <label
+              >Fecha:
+              <input type="date" id="fechaVenta" required />
+            </label>
+          </fieldset>
+
+          <div class="extras">
+            <label for="esFacturadaVenta" class="checkbox-label">
+              <input type="checkbox" id="esFacturadaVenta" />
+              🧾 Esta venta es facturada
+            </label>
+            <p
+              id="factura-info-venta"
+              class="factura-detalle"
+              style="display: none"
+            >
+              💡 Este dato será registrado como una venta facturada en la base
+              de datos.
+            </p>
+          </div>
+
+          <br />
+          <fieldset>
+            <legend>📦 Materiales Vendidos</legend>
+            <table id="tabla-materiales-venta">
+              <thead>
+                <tr>
+                  <th>Material</th>
+                  <th>Peso (kg)</th>
+                  <th>Precio/kg</th>
+                  <th>Subtotal</th>
+                  <th>Eliminar</th>
+                </tr>
+              </thead>
+              <tbody id="tbody-materiales-venta">
+                <!-- Filas dinámicas -->
+              </tbody>
+            </table><br>
+            <button type="button" id="btn-agregar-material-venta">
+              + Añadir Material
+            </button>
+          </fieldset>
+
+          <div class="extras">
+            <p>Total a cobrar: <strong id="totalVenta">$0</strong></p>
+          </div>
+
+          <div class="acciones-compra">
+            <button type="button" id="btn-limpiar-venta">
+              🧹 Limpiar Registro
+            </button>
+            <button type="submit" id="btn-guardar-venta">
+              💾 Guardar Venta
+            </button>
+            <button type="button" id="btn-imprimir-venta">
+              🖨️ Imprimir Boleta
+            </button>
+            <button type="button" id="btn-historial-venta">
+              📜 Ver Historial
+            </button>
+            <button type="button" id="btn-exportar-venta">
+              📥 Exportar a Excel
+            </button>
+          </div>
+        </form>
+      </section>
+
+      <section
+        id="historial-compras"
+        style="display: none; max-width: 1000px; margin: auto"
+      >
+        <div class="historial-header">
+          <h3>📜 Historial de Compras</h3>
+          <button id="btn-cerrar-historial" title="Cerrar historial">✖️</button>
         </div>
 
-        <br>
-        <fieldset>
-          <legend>📦 Materiales Comprados</legend>
-          <table id="tabla-materiales">
-            <thead>
-              <tr>
-                <th>Material</th>
-                <th>Peso (kg)</th>
-                <th>Precio/kg</th>
-                <th>Subtotal</th>
-                <th>Eliminar</th>
-              </tr>
-            </thead>
-            <tbody id="tbody-materiales">
-              <!-- Filas dinámicas -->
-            </tbody>
-          </table>
-          <button type="button" id="btn-agregar-material">+ Añadir Material</button>
-        </fieldset>
+        <table>
+          <thead>
+            <tr>
+              <th>Fecha</th>
+              <th>Cliente</th>
+              <th>RUT</th>
+              <th>Total</th>
+              <th>Facturada</th>
+              <th>🗑️</th>
+            </tr>
+          </thead>
+          <tbody id="tabla-historial"></tbody>
+        </table>
+      </section>
+    </main>
 
-        <div class="extras">
-          <p>Total a pagar: <strong id="totalCompra">$0</strong></p>
-        </div>
-
-        <div class="acciones-compra">
-          <button type="button" id="btn-limpiar">🧹 Limpiar Registro</button>
-          <button type="submit" id="btn-guardar">💾 Guardar Compra</button>
-          <button type="button" id="btn-imprimir">🖨️ Imprimir Boleta</button>
-          <button type="button" id="btn-historial">📜 Ver Historial</button>
-          <button type="button" id="btn-exportar">📥 Exportar a Excel</button>
-        </div>
-      </form>
-    </section>
-
-    <section id="vista-ventas" class="content-section" style="display: none;">
-  <form id="form-venta">
-    <fieldset>
-      <legend>🧍 Datos de la Venta</legend>
-      <label>N° Folio:
-        <input type="text" id="folioVenta" required />
-      </label>
-      <label>Nombre:
-        <input type="text" id="nombreVenta" required />
-      </label>
-      <label>RUT:
-        <input type="text" id="rutVenta" required />
-      </label>
-      <label>Dirección:
-        <input type="text" id="direccionVenta" />
-      </label>
-      <label>Fecha:
-        <input type="date" id="fechaVenta" required />
-      </label>
-    </fieldset>
-
-    <div class="extras">
-      <label for="esFacturadaVenta" class="checkbox-label">
-        <input type="checkbox" id="esFacturadaVenta" />
-        🧾 Esta venta es facturada
-      </label>
-      <p id="factura-info-venta" class="factura-detalle" style="display: none;">
-        💡 Este dato será registrado como una venta facturada en la base de datos.
-      </p>
-    </div>
-
-    <br>
-    <fieldset>
-      <legend>📦 Materiales Vendidos</legend>
-      <table id="tabla-materiales-venta">
+    <section
+      id="historial-ventas"
+      style="display: none; max-width: 1000px; margin: auto"
+    >
+      <div class="historial-header">
+        <h3>📜 Historial de Ventas</h3>
+        <button id="btn-cerrar-historial-venta" title="Cerrar historial">
+          ✖️
+        </button>
+      </div>
+      <table>
         <thead>
           <tr>
-            <th>Material</th>
-            <th>Peso (kg)</th>
-            <th>Precio/kg</th>
-            <th>Subtotal</th>
-            <th>Eliminar</th>
-          </tr>
-        </thead>
-        <tbody id="tbody-materiales-venta">
-          <!-- Filas dinámicas -->
-        </tbody>
-      </table>
-      <button type="button" id="btn-agregar-material-venta">+ Añadir Material</button>
-    </fieldset>
-
-    <div class="extras">
-      <p>Total a cobrar: <strong id="totalVenta">$0</strong></p>
-    </div>
-
-    <div class="acciones-compra">
-      <button type="button" id="btn-limpiar-venta">🧹 Limpiar Registro</button>
-      <button type="submit" id="btn-guardar-venta">💾 Guardar Venta</button>
-      <button type="button" id="btn-imprimir-venta">🖨️ Imprimir Boleta</button>
-      <button type="button" id="btn-historial-venta">📜 Ver Historial</button>
-      <button type="button" id="btn-exportar-venta">📥 Exportar a Excel</button>
-    </div>
-  </form>
-</section>
-
-
-    <section id="historial-compras" style="display: none; max-width: 1000px; margin: auto;">
-    <div class="historial-header">
-    <h3>📜 Historial de Compras</h3>
-    <button id="btn-cerrar-historial" title="Cerrar historial">✖️</button>
-    </div>
-
-    <table>
-        <thead>
-        <tr>
             <th>Fecha</th>
+            <th>Folio</th>
             <th>Cliente</th>
             <th>RUT</th>
             <th>Total</th>
             <th>Facturada</th>
             <th>🗑️</th>
-        </tr>
+          </tr>
         </thead>
-        <tbody id="tabla-historial"></tbody>
-    </table>
+        <tbody id="tabla-historial-ventas"></tbody>
+      </table>
     </section>
 
-  </main>
-  <script type="module" src="js/materiales.js"></script>
-  <script type="module" src="js/compras.js"></script>
-  <script type="module" src="js/ventas.js"></script>
-  <br><br>
+    <script type="module" src="js/materiales.js"></script>
+    <script type="module" src="js/compras.js"></script>
+    <script type="module" src="js/ventas.js"></script>
+    <br /><br />
 
-  <section id="historial-ventas" style="display: none; max-width: 1000px; margin: auto;">
-  <div class="historial-header">
-    <h3>📜 Historial de Ventas</h3>
-    <button id="btn-cerrar-historial-venta" title="Cerrar historial">✖️</button>
-  </div>
-  <table>
-    <thead>
-      <tr>
-        <th>Fecha</th>
-        <th>Folio</th>
-        <th>Cliente</th>
-        <th>RUT</th>
-        <th>Total</th>
-        <th>Facturada</th>
-        <th>Eliminar</th>
-      </tr>
-    </thead>
-    <tbody id="tabla-historial-ventas"></tbody>
-  </table>
-</section>
-
-  <footer style="background-color: #f1f1f1; text-align: center; padding: 1rem; font-size: 0.9rem; color: #555; border-top: 1px solid #ccc; position: fixed; bottom: 0; left: 0; right: 0;">
-    © 2025 Reciclaje Adán Lizana — Todos los derechos reservados.
-  </footer>
-</body>
+    <footer
+      style="
+        background-color: #f1f1f1;
+        text-align: center;
+        padding: 1rem;
+        font-size: 0.9rem;
+        color: #555;
+        border-top: 1px solid #ccc;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+      "
+    >
+      © 2025 Reciclaje Adán Lizana — Todos los derechos reservados.
+    </footer>
+  </body>
 </html>
