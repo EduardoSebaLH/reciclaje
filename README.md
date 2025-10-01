@@ -52,9 +52,8 @@ Añade aquí imágenes de tu app en funcionamiento (por ejemplo: vista principal
 ![Registro materiales venta](/assets/7.png)
 ![Historial de ventas](/assets/8.png)
 
-🙌 AutorDesarrollado por Eduardo Lizana
-📍 San Bernardo, Chile
-💼 Técnico en Informática & Estudiante de Ingeniería en Informática
+AutorDesarrollado por Eduardo Lizana
+Técnico en Programación y Análisis de Sistemas & Estudiante de Ingeniería en Informática
 
 Si este proyecto te pareció interesante, no dudes en contactarme.
 
