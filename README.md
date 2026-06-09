@@ -53,7 +53,7 @@ Añade aquí imágenes de tu app en funcionamiento (por ejemplo: vista principal
 ![Historial de ventas](/assets/8.png)
 
 AutorDesarrollado por Eduardo Lizana
-Técnico en Programación y Análisis de Sistemas & Estudiante de Ingeniería en Informática
+Ingeniería en Informática
 
 Si este proyecto te pareció interesante, no dudes en contactarme.
 
